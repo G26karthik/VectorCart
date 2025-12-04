@@ -17,16 +17,19 @@ The system is built on a microservices-inspired architecture, containerized with
 
 ```mermaid
 graph TD
-    User[User] -->|Interacts| Frontend[React Frontend (Vercel)]
-    Frontend -->|API Requests| Backend[FastAPI Backend (Render)]
+    User[User] -->|Interacts| Frontend["React Frontend (Vercel)"]
+    Frontend -->|API Requests| Backend["FastAPI Backend (Render)"]
     
-    subgraph "Backend Services"
-        Backend -->|Scrapes| Hunnit[Hunnit.com]
-        Backend -->|Read/Write| DB[(PostgreSQL + PgVector)]
-        Backend -->|Embed/Generate| Gemini[Google Gemini API]
+    subgraph BackendServices["Backend Services"]
+        Backend -->|Scrapes| Hunnit["Hunnit.com"]
+        Backend -->|Read/Write| DB["PostgreSQL + PgVector"]
+        Backend -->|Embed/Generate| Gemini["Google Gemini API"]
     end
     
-    subgraph "Data Flow"
+    subgraph DataFlow["Data Flow"]
+        ScraperService["Scraper Service"]
+        RAGService["RAG Service"]
+
         Hunnit -->|Raw Data| ScraperService
         ScraperService -->|Cleaned Data| DB
         DB -->|Vector Search| RAGService
