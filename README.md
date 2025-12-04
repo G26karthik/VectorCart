@@ -1,99 +1,67 @@
 # VectorCart - AI-Powered Product Discovery Assistant
 
-**VectorCart** is a full-stack AI e-commerce assistant that scrapes product data, stores it with vector embeddings, and provides intelligent product recommendations using RAG (Retrieval Augmented Generation).
+**VectorCart** is a full-stack AI e-commerce assistant that I built to solve the problem of finding the right products using natural language. It scrapes product data, understands abstract queries (like "gym and office wear"), and provides personalized recommendations using RAG (Retrieval Augmented Generation).
 
-## 🚀 Features
+## 🔗 Live Demo
 
-*   **Automated Scraping:** Fetches and normalizes product data from **Hunnit.com**.
-*   **Vector Search:** Uses **PgVector** and **Gemini Embeddings** for semantic search.
-*   **AI Chatbot:** **Gemini-powered** assistant that understands abstract queries (e.g., "gym and office wear").
-*   **Modern Stack:** FastAPI, PostgreSQL, React, Vite, TailwindCSS, Docker.
+*   **Frontend (Store):** [https://vector-cart-rho.vercel.app/](https://vector-cart-rho.vercel.app/)
+*   **Backend API:** [https://vectorcart-api.onrender.com/docs](https://vectorcart-api.onrender.com/docs)
+
+## 🚀 Key Features
+
+*   **Smart Search:** You don't need to match keywords exactly. Ask for "something for yoga" or "outfit for a date", and it understands.
+*   **Real Data:** I built a custom scraper that fetches real-time product data from **Hunnit.com**.
+*   **AI Recommendations:** Uses **Google Gemini** to explain *why* a product is a good match for you.
+*   **Modern Stack:** Built with performance in mind using FastAPI, React, and PgVector.
 
 ## 🛠️ Tech Stack
 
-*   **Backend:** Python, FastAPI, SQLAlchemy, Alembic, BeautifulSoup
-*   **Database:** PostgreSQL + PgVector
-*   **AI/LLM:** Google Gemini API (`models/text-embedding-004`, `gemini-flash-latest`)
+*   **Backend:** Python, FastAPI, SQLAlchemy
+*   **Database:** PostgreSQL + PgVector (for storing AI embeddings)
+*   **AI/LLM:** Google Gemini API (`models/text-embedding-004` & `gemini-flash-latest`)
 *   **Frontend:** React, TypeScript, Vite, TailwindCSS
-*   **Infrastructure:** Docker, Docker Compose
+*   **Infrastructure:** Docker, Render (Backend), Vercel (Frontend)
 
-## 🏃‍♂️ How to Run Locally
+## 🏗️ How It Works
 
-1.  **Prerequisites:**
-    *   Docker Desktop installed and running.
-    *   Google Gemini API Key.
+1.  **Scraping:** The system fetches product details (title, price, description) from Hunnit.com.
+2.  **Embedding:** Each product is converted into a vector embedding using Gemini's text embedding model.
+3.  **Retrieval:** When you ask a question, your query is also converted into a vector. The system then finds the products that are mathematically closest to your query in the vector space.
+4.  **Generation:** The top results are sent to the Gemini LLM, which generates a helpful, human-like response recommending the best options.
 
-2.  **Setup Environment:**
-    *   Create a `.env` file in the root directory:
-        ```env
-        POSTGRES_USER=postgres
-        POSTGRES_PASSWORD=password
-        POSTGRES_SERVER=db
-        POSTGRES_PORT=5432
-        POSTGRES_DB=product_discovery
-        GEMINI_API_KEY=your_api_key_here
-        ```
+## 🏃‍♂️ Running Locally
 
-3.  **Start Application:**
+If you want to run this on your own machine:
+
+1.  **Clone the repo:**
+    ```bash
+    git clone https://github.com/G26karthik/VectorCart.git
+    cd VectorCart
+    ```
+
+2.  **Set up Environment Variables:**
+    Create a `.env` file with your credentials:
+    ```env
+    POSTGRES_USER=postgres
+    POSTGRES_PASSWORD=password
+    POSTGRES_DB=product_discovery
+    GEMINI_API_KEY=your_api_key_here
+    ```
+
+3.  **Run with Docker:**
     ```bash
     docker-compose up -d --build
     ```
 
-4.  **Trigger Scraping:**
-    *   Once running, trigger the initial data scrape:
-        ```bash
-        curl -X POST http://localhost:8000/api/v1/scrape/run
-        ```
+4.  **Access the App:**
+    Open [http://localhost:3000](http://localhost:3000) in your browser.
 
-5.  **Access the App:**
-    *   **Frontend:** [http://localhost:3000](http://localhost:3000)
-    *   **Backend API:** [http://localhost:8000/docs](http://localhost:8000/docs)
+## 🌟 Future Improvements
 
-## 🏗️ Architecture & Decisions
+If I had more time, here's what I'd add next:
+1.  **Hybrid Search:** Combine keyword search with vector search to handle specific product names better.
+2.  **Chat History:** Save conversations so you can ask follow-up questions.
+3.  **Image Search:** Allow users to upload a photo to find similar products.
 
-*   **FastAPI:** Chosen for its speed and native support for async operations, crucial for handling concurrent scraping and AI requests.
-*   **PgVector:** Integrated directly into PostgreSQL to keep the stack simple (single database for relational and vector data) and reduce infrastructure complexity.
-*   **Gemini API:** Selected for its cost-effectiveness and strong performance in both embedding and generation tasks.
-*   **Docker:** Ensures consistent environments across development and deployment.
-
-## 🕷️ Scraping Approach
-
-*   **Target:** Hunnit.com
-*   **Method:** Utilizes `requests` and `BeautifulSoup` to fetch the `products.json` endpoint provided by Shopify-based stores. This ensures reliable, structured data extraction without parsing complex HTML DOMs.
-*   **Data Cleaning:** Normalizes prices, descriptions (stripping HTML tags), and categories to ensure high-quality input for the RAG pipeline.
-
-## 🧠 RAG Pipeline Design
-
-1.  **Ingestion:** Scraped products are converted into text chunks (Title + Description + Features).
-2.  **Embedding:** Text chunks are embedded using `models/text-embedding-004`.
-3.  **Storage:** Embeddings are stored in the `products` table using the `vector` column type.
-4.  **Retrieval:** User queries are embedded and compared against stored vectors using Cosine Similarity (`<=>` operator).
-5.  **Generation:** Top 5 relevant products are passed as context to `gemini-flash-latest` to generate a personalized, explained recommendation.
-
-## ⚠️ Challenges & Trade-offs
-
-*   **Model Deprecation:** Initially used `gemini-pro`, which returned 404 errors. Switched to `gemini-flash-latest` for reliable access.
-*   **Scraping Reliability:** Direct HTML scraping is fragile. Switched to consuming the JSON endpoint for stability.
-*   **Context Window:** Limited to top 5 products to balance context window usage and relevance.
-
-## 🌟 Bonus: Future Improvements
-
-If I had more time, I would implement:
-1.  **Hybrid Search:** Combine keyword search (BM25) with vector search for better precision on specific product names.
-2.  **Chat History:** Store conversation history in Redis or Postgres to allow multi-turn conversations.
-3.  **Image Search:** Implement multi-modal embeddings to allow users to search by uploading images.
-4.  **Live Scraping:** Implement a Celery task queue to schedule periodic scraping for real-time inventory updates.
-
-## 📦 Deployment Guide
-
-### Backend (Render/Railway)
-1.  Push code to GitHub.
-2.  Connect repository to Render/Railway.
-3.  Set environment variables (`GEMINI_API_KEY`, `DATABASE_URL`).
-4.  Update `start` command to: `sh entrypoint.sh`.
-
-### Frontend (Vercel)
-1.  Push code to GitHub.
-2.  Import project in Vercel.
-3.  Set `VITE_API_URL` to your deployed backend URL.
-4.  Deploy.
+---
+*Built by Karthik*
